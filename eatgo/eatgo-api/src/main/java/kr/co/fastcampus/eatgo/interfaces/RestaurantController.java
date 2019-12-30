@@ -1,5 +1,6 @@
 package kr.co.fastcampus.eatgo.interfaces;
 
+import kr.co.fastcampus.eatgo.application.RestaurantService;
 import kr.co.fastcampus.eatgo.domain.MenuItem;
 import kr.co.fastcampus.eatgo.domain.MenuItemRepository;
 import kr.co.fastcampus.eatgo.domain.Restaurant;
@@ -20,22 +21,28 @@ public class RestaurantController {
     private RestaurantRepository restaurantRepository;
     @Autowired
     private MenuItemRepository menuItemRepository;
+    @Autowired
+    private RestaurantService restaurantService;
 
     @GetMapping("/restaurants")
     public List<Restaurant> list(){
 
-        List<Restaurant> restaurants = restaurantRepository.findAll();
+        List<Restaurant> restaurants = restaurantService.getRestaurants();
+        //List<Restaurant> restaurants = restaurantRepository.findAll();
         //restaurants.add(restaurant);
         return restaurants;
     }
 
     @GetMapping("/restaurants/{id}")
     public Restaurant detail(@PathVariable("id")Long id){
-        Restaurant restaurant = restaurantRepository.findById(id);
+        Restaurant restaurant = restaurantService.getRestaurant(id);
+        //기본정보 + 메뉴정보
+
+       /* Restaurant restaurant = restaurantRepository.findById(id);
 
         List<MenuItem> menuItems = menuItemRepository.findAllByRestaurantId(id);
         //restaurant.addMenuItem(new MenuItem("Kimchi"));
-        restaurant.setMenuItems(menuItems);
+        restaurant.setMenuItems(menuItems);*/
         return restaurant;
     }
 }
