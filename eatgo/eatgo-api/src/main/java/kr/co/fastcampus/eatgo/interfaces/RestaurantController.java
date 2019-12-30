@@ -6,10 +6,11 @@ import kr.co.fastcampus.eatgo.domain.MenuItemRepository;
 import kr.co.fastcampus.eatgo.domain.Restaurant;
 import kr.co.fastcampus.eatgo.domain.RestaurantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @RestController
@@ -17,10 +18,6 @@ public class RestaurantController {
     //RestController 도 컴포넌트의 일종.. 컴포넌트 생성시
     //  IoC 컨테이너가 이 컨트롤러를 직접 관리해서 생성해줌.
 
-    @Autowired
-    private RestaurantRepository restaurantRepository;
-    @Autowired
-    private MenuItemRepository menuItemRepository;
     @Autowired
     private RestaurantService restaurantService;
 
@@ -44,5 +41,17 @@ public class RestaurantController {
         //restaurant.addMenuItem(new MenuItem("Kimchi"));
         restaurant.setMenuItems(menuItems);*/
         return restaurant;
+    }
+
+    @PostMapping("/restaurants")
+    public ResponseEntity<?> create(@RequestBody Restaurant resource)
+            throws URISyntaxException {
+        String name = resource.getName();
+        String address = resource.getAddress();
+        Restaurant restaurant = new Restaurant(1234L, name, address);
+        restaurantService.addRestaurant(restaurant);
+
+        URI location = new URI("/restaurants/" + restaurant.getId());
+        return ResponseEntity.created(location).body("{}");
     }
 }

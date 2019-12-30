@@ -38,4 +38,8 @@ public class RestaurantService {
     }
 
 
+    public Restaurant addRestaurant(Restaurant restaurant) {
+        return restaurantRepository.save(restaurant);
+        //return new Restaurant(1234L, restaurant.getName(), restaurant.getAddress());
+    }
 }
