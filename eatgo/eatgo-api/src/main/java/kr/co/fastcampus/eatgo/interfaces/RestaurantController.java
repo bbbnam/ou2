@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+@CrossOrigin
 @RestController
 public class RestaurantController {
     //RestController 도 컴포넌트의 일종.. 컴포넌트 생성시
