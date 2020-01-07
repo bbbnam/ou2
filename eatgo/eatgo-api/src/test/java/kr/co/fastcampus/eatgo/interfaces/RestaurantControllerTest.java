@@ -11,16 +11,18 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
@@ -37,7 +39,11 @@ public class RestaurantControllerTest {
     public void list() throws Exception {
 
         List<Restaurant> restaurants = new ArrayList<>();
-        restaurants.add(new Restaurant(1004L,"JOKER house","Seoul"));
+        restaurants.add(Restaurant.builder()
+                .id(1004L)
+                .name("JOKER house")
+                .address("Seoul")
+                .build());
         given(restaurantService.getRestaurants()).willReturn(restaurants);
 
         mvc.perform(get("/restaurants"))
@@ -53,11 +59,23 @@ public class RestaurantControllerTest {
     }
 
     @Test
-    public void detail() throws Exception {
-        Restaurant restaurant1 = new Restaurant(1004L,"JOKER house","Seoul");
-        restaurant1.addMenuItem(new MenuItem("Kimchi"));
+    public void detailWithExisted() throws Exception {
+        Restaurant restaurant1 = Restaurant.builder()
+                .id(1004L)
+                .name("JOKER house")
+                .address("Seoul")
+                .build();
 
-        Restaurant restaurant2 = new Restaurant(2020L,"Cyber Food","Seoul");
+        MenuItem menuItem = MenuItem.builder()
+                        .name("Kimchi")
+                        .build();
+        restaurant1.setMenuItems(Arrays.asList(menuItem));
+
+        Restaurant restaurant2 = Restaurant.builder()
+                .id(2020L)
+                .name("Cyber Food")
+                .address("Seoul")
+                .build();
 
         given(restaurantService.getRestaurant(1004L)).willReturn(restaurant1);
         given(restaurantService.getRestaurant(2020L)).willReturn(restaurant2);
@@ -84,15 +102,62 @@ public class RestaurantControllerTest {
     }
 
     @Test
-    public void create() throws Exception {
+    public void detailWithNotExisted() throws Exception {
+        given(restaurantService.getRestaurant(404L))
+                .willThrow(new RestaurantNotFoundException(404L));
+
+        mvc.perform(get("/restaurants/404"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("{}"));
+
+    }
+
+    @Test
+    public void createWithValidData() throws Exception {
+        given(restaurantService.addRestaurant(any())).will(invocation -> {
+            Restaurant restaurant = invocation.getArgument(0);
+            return Restaurant.builder()
+                    .id(1234L)
+                    .name(restaurant.getName())
+                    .address(restaurant.getAddress())
+                    .build();
+        });
+
         mvc.perform(post("/restaurants")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"BeRyong\",\"address\":\"Busan\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location", "/restaurants/1234"))
-                .andExpect(content().string("{}"));
+                .andExpect(content().string("{}"))
+                .andDo(print());
 
         verify(restaurantService).addRestaurant(any()); //어떤 객체가 들어가든 제대로 된 객체만 들어가면 되게끔 해주는 any()
     }
 
+    @Test
+    public void createWithInvalidData() throws Exception {
+        mvc.perform(post("/restaurants")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"\",\"address\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateWithValidData() throws Exception {
+        //
+        mvc.perform(patch("/restaurants/1004")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\":\"JOKER Bar\", \"address\":\"Busan\"}"))
+                    .andExpect(status().isOk());
+
+        verify(restaurantService).updateRestaurant(1004L,"JOKER Bar", "Busan");
+    }
+
+    @Test
+    public void updateWithInvalidData() throws Exception {
+        mvc.perform(patch("/restaurants/1004")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"\", \"address\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
 }
