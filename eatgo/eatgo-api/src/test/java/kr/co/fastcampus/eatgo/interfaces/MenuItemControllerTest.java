@@ -23,7 +23,7 @@ public class MenuItemControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    @MockBean
+    @MockBean  // mockbean은 spring boot container 가 필요하고 bean이 container에 존재해야 할 경우 사용, mock은 그냥 자바에서 사용
     private MenuItemService menuItemService;
 
     @Test

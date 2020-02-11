@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -22,8 +21,9 @@ public class MenuItemController {
             @PathVariable("restaurantId") Long restaurantId,
             @RequestBody List<MenuItem> menuItems
     ){
-        //List<MenuItem> menuItems = new ArrayList<>();
+
         menuItemService.bulkUpdate(restaurantId, menuItems);
+
         return "";
     }
 
